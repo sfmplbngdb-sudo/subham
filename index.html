@@ -4,7 +4,7 @@
 
 <!--
 ╔══════════════════════════════════════════════════════════════════════╗
-║  SFMPL TMS v4 — Supabase Edition (with User Auth)                   ║
+║  SUBHAM TMS v4 — Supabase Edition (with User Auth)                   ║
 ║  Backend: Supabase (PostgreSQL)  |  Deploy: GitHub Pages            ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║  SETUP STEPS:                                                        ║
@@ -22,12 +22,12 @@
 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SFMPL TMS v4 — Transport Management</title>
+<title>SUBHAM TMS v4 — Transport Management</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SFMPL TMS — Professional Classic UI
+   SUBHAM TMS — Professional Classic UI
    Zero web-fonts · Zero animations · Zero gradients
    System fonts only · Pure border-based depth
    Runs perfectly on any low-end PC / browser
@@ -682,7 +682,7 @@ table tfoot td { padding: 7px 10px; color: #fff; font-size: 11px; font-weight: 7
     <div class="login-logo">
       <div class="login-logo-badge">TMS</div>
       <div>
-        <div class="login-logo-text">SFMPL TMS</div>
+        <div class="login-logo-text">SUBHAM TMS</div>
         <div class="login-logo-sub">Transport Management System</div>
       </div>
     </div>
@@ -762,7 +762,7 @@ table tfoot td { padding: 7px 10px; color: #fff; font-size: 11px; font-weight: 7
       </div>
     </div>
   </nav>
-  <div class="sidebar-footer">SFMPL TMS v4 &nbsp;·&nbsp; Supabase Edition</div>
+  <div class="sidebar-footer">SUBHAM TMS v4 &nbsp;·&nbsp; Supabase Edition</div>
 </div>
 
 <!-- MAIN -->
@@ -1026,9 +1026,9 @@ const SB = {
     let soNumber = '';
     if (d.Converted === 'YES') {
       const rows = await sb('so_master', 'GET', null, '?so_number=not.is.null&order=so_number.desc&limit=1');
-      const last = rows[0]?.so_number || 'SFMPL/080/000';
+      const last = rows[0]?.so_number || 'SUBHAM/080/000';
       const num = parseInt(last.split('/')[2]||'0') + 1;
-      soNumber = 'SFMPL/080/' + String(num).padStart(3,'0');
+      soNumber = 'SUBHAM/080/' + String(num).padStart(3,'0');
     }
     const row = await sb('so_master', 'POST', { so_number: soNumber, party_id: d.Party_ID, from_id: d.From_ID, to_id: d.To_ID, mt, rate_given: pr, given_labour_type: d.Given_Labour_Type, rate_received: lr, rec_labour_type: d.Rec_Labour_Type, loading_charge: lc, effective_given: effParty, effective_rec: effLorry, margin_per_mt: marginMT, total_margin: totalMargin, converted: d.Converted, status: d.Status||'ACTIVE', remarks: d.Remarks||'', allocated: false, documentation_status: false, mf_status: false, unloading_status: false, profit_status: false, created_by: d.Created_By||(auth.user?auth.user.username:'admin') });
     return { success: true, id: row[0]?.id, SO_Number: soNumber };
@@ -1039,9 +1039,9 @@ const SB = {
       const rows = await sb('so_master', 'GET', null, '?id=eq.' + d.SO_ID);
       if (rows[0] && !rows[0].so_number) {
         const latest = await sb('so_master', 'GET', null, '?so_number=not.is.null&order=so_number.desc&limit=1');
-        const last = latest[0]?.so_number || 'SFMPL/080/000';
+        const last = latest[0]?.so_number || 'SUBHAM/080/000';
         const num = parseInt(last.split('/')[2]||'0') + 1;
-        updates.so_number = 'SFMPL/080/' + String(num).padStart(3,'0');
+        updates.so_number = 'SUBHAM/080/' + String(num).padStart(3,'0');
       }
     }
     await sb('so_master', 'PATCH', updates, '?id=eq.' + d.SO_ID);
@@ -4021,13 +4021,13 @@ async function downloadAccountExcel() {
     let wb, filename;
     if (rptType === 'daily') {
       wb = buildDailyPendingWorkbook(rows, dlFrom, dlTo);
-      filename = 'SFMPL_DayByDay_Pending_' + (dlFrom||'all') + '_to_' + (dlTo||'all') + '.xlsx';
+      filename = 'SUBHAM_DayByDay_Pending_' + (dlFrom||'all') + '_to_' + (dlTo||'all') + '.xlsx';
     } else if (rptType === 'monthly') {
       wb = buildMonthlySummaryWorkbook(rows, dlFrom, dlTo);
-      filename = 'SFMPL_Monthly_Summary_' + (dlFrom||'all') + '_to_' + (dlTo||'all') + '.xlsx';
+      filename = 'SUBHAM_Monthly_Summary_' + (dlFrom||'all') + '_to_' + (dlTo||'all') + '.xlsx';
     } else {
       wb = buildDetailedWorkbook(rows, rptType, dlFrom, dlTo);
-      filename = 'SFMPL_Account_' + rptType + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+      filename = 'SUBHAM_Account_' + rptType + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
     }
     XLSX.writeFile(wb, filename);
     toast('✅ Excel downloaded: ' + filename);
@@ -4053,7 +4053,7 @@ function buildDetailedWorkbook(rows, rptType, fromDate, toDate) {
     rows.reduce((s,r)=>s+(parseFloat(r.Bal_Paid_Amount)||0),0),'',''
   ];
   const aoa = [
-    ['SFMPL Transport — Account Balance Report'],
+    ['SUBHAM Transport — Account Balance Report'],
     ['Type: '+rptType.toUpperCase()+(fromDate?' | From: '+fromDate:'')+(toDate?' | To: '+toDate:'')+'  |  Generated: '+new Date().toLocaleDateString('en-IN')],
     [], hdr, ...data, [], totals
   ];
@@ -4087,7 +4087,7 @@ function buildDailyPendingWorkbook(rows, fromDate, toDate) {
     byDate[ld].push(r);
   });
   const aoa = [
-    ['SFMPL Transport — Day-by-Day Pending Payment Report'],
+    ['SUBHAM Transport — Day-by-Day Pending Payment Report'],
     ['Period: '+(fromDate||'All')+' to '+(toDate||'All')+'  |  Generated: '+new Date().toLocaleDateString('en-IN')],
     []
   ];
@@ -4127,7 +4127,7 @@ function buildMonthlySummaryWorkbook(rows, fromDate, toDate) {
     if(s==='COMPLETED')   byMonth[mk].completed.push(r);
   });
   const aoa = [
-    ['SFMPL Transport — Monthly Account Summary'],
+    ['SUBHAM Transport — Monthly Account Summary'],
     ['Period: '+(fromDate||'All')+' to '+(toDate||'All')+'  |  Generated: '+new Date().toLocaleDateString('en-IN')],
     [],
     ['Month','Total','Pending','Bal Pending','Completed','Total Advance (₹)','Total Balance (₹)','Adv Paid (₹)','Bal Paid (₹)','Outstanding (₹)']
@@ -4154,7 +4154,7 @@ function buildMonthlySummaryWorkbook(rows, fromDate, toDate) {
   ws['!cols'] = [{wch:18},{wch:8},{wch:10},{wch:12},{wch:12},{wch:16},{wch:16},{wch:14},{wch:14},{wch:14}];
   XLSX.utils.book_append_sheet(wb, ws, 'Monthly Summary');
   // Detail sheet
-  const detAoa = [['SFMPL — Monthly Detail'],[]];
+  const detAoa = [['SUBHAM — Monthly Detail'],[]];
   Object.entries(byMonth).forEach(([month, g]) => {
     detAoa.push(['Month: '+month,'','','','','','']);
     detAoa.push(['MF No','SO Number','Lorry No','Broker','Advance (₹)','Balance (₹)','Status']);
@@ -4273,7 +4273,7 @@ async function renderReport() {
       <div style="display:grid;grid-template-columns:repeat(4,1fr) repeat(2,160px);gap:10px;align-items:end">
         <div class="form-group">
           <label>SO Number</label>
-          <input type="text" id="rf-so" placeholder="e.g. SFMPL/080/001">
+          <input type="text" id="rf-so" placeholder="e.g. SUBHAM/080/001">
         </div>
         <div class="form-group">
           <label>Lorry No</label>
@@ -4562,7 +4562,7 @@ function exportRptCSV() {
   const cols = getRptCols();
   const bom  = '\uFEFF';
   let csv = bom;
-  csv += 'SFMPL TMS — Master Report\n';
+  csv += 'SUBHAM TMS — Master Report\n';
   csv += `Tab: ${_rptTab} | Records: ${_rptData.length} | Generated: ${new Date().toLocaleDateString('en-IN')}\n\n`;
   csv += cols.map(c => `"${c.l}"`).join(',') + '\n';
   _rptData.forEach(r => {
@@ -4578,7 +4578,7 @@ function exportRptCSV() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = `SFMPL_Report_${_rptTab}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `SUBHAM_Report_${_rptTab}_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
