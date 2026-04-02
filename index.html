@@ -1341,23 +1341,10 @@ function renderDashboard() {
 async function _loadDashboardData() {
   let d = null;
   try {
-    d = await new Promise((resolve) => {
-      // Use google.script.run directly when available — no Promise wrapper that can reject
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        const timer = setTimeout(() => resolve(null), 9000);
-        google.script.run
-          .withSuccessHandler(function(result) { clearTimeout(timer); resolve(result || null); })
-          .withFailureHandler(function()       { clearTimeout(timer); resolve(null); })
-          .getDashboardData();
-      } else {
-        // Mock mode
-        setTimeout(() => resolve({
-          totalSO:48, convertedSO:32, pendingSO:12, rejectedSO:4,
-          runningTrips:8, completedTrips:24, totalRevenue:1842500, totalProfit:284600,
-          trend:[{date:'01/01',margin:8000},{date:'02/01',margin:12000},{date:'03/01',margin:9000}]
-        }), 300);
-      }
-    });
+    d = await Promise.race([
+      SB.getDashboardData(),
+      new Promise(resolve => setTimeout(() => resolve(null), 10000))
+    ]);
   } catch(e) { d = null; }
 
   // Only update if user is still on dashboard
