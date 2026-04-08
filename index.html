@@ -1159,12 +1159,55 @@ const SB = {
     return { success: true };
   },
   async getBalanceReport(filters) {
-    let query = '?order=id.desc';
-    if (filters && filters.status && filters.status !== 'ALL') query += '&overall_status=eq.' + filters.status;
-    if (filters && filters.dateFrom) query += '&loading_date=gte.' + filters.dateFrom;
-    if (filters && filters.dateTo)   query += '&loading_date=lte.' + filters.dateTo + 'T23:59:59';
-    const rows = await sb('account_master', 'GET', null, query);
-    return rows.map(r => ({ ...r, SO_Number: r.so_number, MF_No: r.mf_no, Lorry_No: r.lorry_no, Broker_Name: r.broker_name, Adv_Acc_No: r.adv_acc_no, Adv_IFSC: r.adv_ifsc, Bal_Acc_No: r.bal_acc_no, Bal_IFSC: r.bal_ifsc, Advance_Amount: r.advance_amount, Balance_Amount: r.balance_amount, Overall_Status: r.overall_status, Settlement_Date: r.settlement_date, Loading_Date: r.loading_date, Adv_Paid_Amount: r.adv_paid_amount, Bal_Paid_Amount: r.bal_paid_amount }));
+    // Fetch all MF records + trip data + broker data (source of truth)
+    const [mfRows, tdRows, brokerRows, acctRows] = await Promise.all([
+      sb('mf_master', 'GET', null, '?order=id.desc'),
+      sb('trip_dispatch_master', 'GET', null, ''),
+      sb('broker_master', 'GET', null, ''),
+      sb('account_master', 'GET', null, '')
+    ]);
+    const tdMap     = {};  tdRows.forEach(r => { tdMap[String(r.so_id)] = r; });
+    const brokerMap = {};  brokerRows.forEach(r => { brokerMap[String(r.id)] = r; });
+    const acctMap   = {};  acctRows.forEach(r => { acctMap[String(r.mf_no)] = r; });
+
+    let rows = mfRows.map(mf => {
+      const td     = tdMap[String(mf.so_id)] || {};
+      const broker = brokerMap[String(td.broker_id)] || {};
+      const acct   = acctMap[String(mf.mf_no)] || {};
+      const loadDate = td.loading_date || '';
+      return {
+        MF_No:           mf.mf_no,
+        SO_Number:       mf.so_number || '',
+        Lorry_No:        mf.lorry_no || td.lorry_no || '',
+        Broker_Name:     broker.broker_name || td.broker_contact || '',
+        Adv_Acc_No:      acct.adv_acc_no  || td.broker_acc  || broker.primary_acc_no  || '',
+        Adv_IFSC:        acct.adv_ifsc    || td.broker_ifsc || broker.ifsc             || '',
+        Bal_Acc_No:      acct.bal_acc_no  || td.bal_acc     || broker.secondary_acc_no || '',
+        Bal_IFSC:        acct.bal_ifsc    || td.bal_ifsc    || broker.secondary_ifsc   || '',
+        Advance_Amount:  acct.advance_amount  !== undefined ? acct.advance_amount  : (mf.advance || 0),
+        Balance_Amount:  acct.balance_amount  !== undefined ? acct.balance_amount  : (mf.balance || 0),
+        Adv_Paid_Amount: acct.adv_paid_amount || 0,
+        Bal_Paid_Amount: acct.bal_paid_amount || 0,
+        Overall_Status:  acct.overall_status  || 'PENDING',
+        Settlement_Date: acct.settlement_date || '',
+        Loading_Date:    loadDate
+      };
+    });
+
+    // Apply filters
+    const f = filters || {};
+    if (f.status && f.status !== 'ALL') {
+      rows = rows.filter(r => String(r.Overall_Status || '').toUpperCase() === f.status.toUpperCase());
+    }
+    if (f.dateFrom) {
+      const from = new Date(f.dateFrom);
+      rows = rows.filter(r => { if (!r.Loading_Date) return true; return new Date(r.Loading_Date) >= from; });
+    }
+    if (f.dateTo) {
+      const to = new Date(f.dateTo + 'T23:59:59');
+      rows = rows.filter(r => { if (!r.Loading_Date) return true; return new Date(r.Loading_Date) <= to; });
+    }
+    return rows;
   },
 
   // ── DASHBOARD ──
